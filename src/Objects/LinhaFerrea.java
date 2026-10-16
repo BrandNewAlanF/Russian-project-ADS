@@ -5,8 +5,8 @@ public class LinhaFerrea {
     private float custo;
     private Town origem,
         destino;
-
-    LinhaFerrea(String nome, float custo, Town origem, Town Destino){
+//troquei Destino para destino prq tava das issues
+    LinhaFerrea(String nome, float custo, Town origem, Town destino){
         this.nome=nome;
         this.custo=custo;
         this.origem= origem;
