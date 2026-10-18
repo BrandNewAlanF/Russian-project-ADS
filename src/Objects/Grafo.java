@@ -41,6 +41,69 @@ public class Grafo {
         todasArestas.add(linha);
     }
 
+//adiantei esta parte para poder analisar a outra alinea
+    // e) Algoritmo de Kruskal (Árvore Geradora Mínima)
+    public void kruskal() {
+        System.out.println("\n--- e) Algoritmo de Kruskal (MST) ---");
+        List<LinhaFerrea> arestasOrdenadas = new ArrayList<>(todasArestas);
+        //Collections.sort(arestasOrdenadas);
+
+        Map<Town, Town> pai = new HashMap<>();
+        for (Town t : vertices) pai.put(t, t);
+
+        List<LinhaFerrea> mst = new ArrayList<>();
+        float custoTotal = 0;
+
+        for (LinhaFerrea lf : arestasOrdenadas) {
+            Town raizOrigem = encontrar(pai, lf.getOrigem());
+            Town raizDestino = encontrar(pai, lf.getDestino());
+
+            if (!raizOrigem.equals(raizDestino)) {
+                mst.add(lf);
+                custoTotal += lf.getCusto();
+                pai.put(raizOrigem, raizDestino);
+            }
+        }
+
+        for (LinhaFerrea lf : mst) System.out.println(lf);
+        System.out.println("Custo Total da MST (Kruskal): " + custoTotal);
+    }
+
+    private Town encontrar(Map<Town, Town> pai, Town t) {
+        if (!pai.get(t).equals(t)) {
+            pai.put(t, encontrar(pai, pai.get(t)));
+        }
+        return pai.get(t);
+    }
+
+    // f) Algoritmo de Prim (Árvore Geradora Mínima)
+    public void prim(Town inicio) {
+        System.out.println("\n--- f) Algoritmo de Prim (MST) a partir de " + inicio.getName() + " ---");
+        Set<Town> naMST = new HashSet<>();
+        PriorityQueue<LinhaFerrea> pq = new PriorityQueue<>(Comparator.comparingDouble(LinhaFerrea::getCusto));
+        float custoTotal = 0;
+
+        naMST.add(inicio);
+        pq.addAll(listaAdjacencia.get(inicio));
+
+        while (!pq.isEmpty() && naMST.size() < vertices.size()) {
+            LinhaFerrea lf = pq.poll();
+            if (naMST.contains(lf.getDestino())) continue;
+
+            naMST.add(lf.getDestino());
+            custoTotal += lf.getCusto();
+            System.out.println(lf);
+
+            for (LinhaFerrea prox : listaAdjacencia.get(lf.getDestino())) {
+                if (!naMST.contains(prox.getDestino())) {
+                    pq.add(prox);
+                }
+            }
+        }
+        System.out.println("Custo Total da MST (Prim): " + custoTotal);
+    }
+
+
     // g) Algoritmo de Dijkstra (Caminho Mínimo)
     public void dijkstra(Town origem, Town destino) {
         System.out.println("\n--- g) Algoritmo de Dijkstra: " + origem.getName() + " ate " + destino.getName() + " ---");
