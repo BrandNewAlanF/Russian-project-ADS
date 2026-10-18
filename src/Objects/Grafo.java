@@ -1,5 +1,70 @@
 package Objects;
 
+//Ver comentario la embaixo 
+import java.util.*;
+
+public class Grafo {
+    private final Map<Town, List<LinhaFerrea>> listaAdjacencia;
+    private final List<Town> vertices;
+    private final List<LinhaFerrea> todasArestas;
+    private float[][] matrizAdjacencia;
+
+    public Grafo(List<Town> vertices) {
+        this.vertices = vertices;
+        this.listaAdjacencia = new HashMap<>();
+        this.todasArestas = new ArrayList<>();
+
+        for (Town t : vertices) {
+            listaAdjacencia.put(t, new ArrayList<>());
+        }
+
+        this.matrizAdjacencia = new float[vertices.size()][vertices.size()];
+        for (float[] linha : matrizAdjacencia) {
+            Arrays.fill(linha, 0);
+        }
+    }
+
+    public void adicionarAresta(String nome, float custo, Town origem, Town destino) {
+        LinhaFerrea linha = new LinhaFerrea(nome, custo, origem, destino);
+
+        // Lista de Adjacencia (Nao direcionado)
+        listaAdjacencia.get(origem).add(linha);
+        listaAdjacencia.get(destino).add(new LinhaFerrea(nome, custo, destino, origem));
+
+        // Matriz de Adjacencia
+        int i = vertices.indexOf(origem);
+        int j = vertices.indexOf(destino);
+        matrizAdjacencia[i][j] = custo;
+        matrizAdjacencia[j][i] = custo;
+
+        // Lista global de arestas
+        todasArestas.add(linha);
+    }
+
+    // Getters necessarios para os algoritmos no package Algoritmos
+    public List<Town> getVertices() { return vertices; }
+    public List<LinhaFerrea> getTodasArestas() { return todasArestas; }
+    public Map<Town, List<LinhaFerrea>> getListaAdjacencia() { return listaAdjacencia; }
+    public float[][] getMatrizAdjacencia() { return matrizAdjacencia; }
+    
+    public void imprimirMatrizAdjacencia() {
+        System.out.println("\n--- Matriz de Adjacência ---");
+        System.out.print("          ");
+        for (Town t : vertices) System.out.printf("%-10s", t.getName().substring(0, Math.min(t.getName().length(), 8)));
+        System.out.println();
+        for (int i = 0; i < vertices.size(); i++) {
+            System.out.printf("%-10s", vertices.get(i).getName().substring(0, Math.min(vertices.get(i).getName().length(), 8)));
+            for (int j = 0; j < vertices.size(); j++) {
+                System.out.printf("%-10.0f", matrizAdjacencia[i][j]);
+            }
+            System.out.println();
+        }
+    }
+}
+
+
+//Coloquei em comentario pois estou a tentar inglobar na nova estrutura
+/* 
 import java.util.*;
 //Tive que criar esta classe para testar cenas 
 //se for necessario alterar cenas, podem
@@ -197,3 +262,4 @@ public class Grafo {
         return listaAdjacencia;
     }
 }
+    */
