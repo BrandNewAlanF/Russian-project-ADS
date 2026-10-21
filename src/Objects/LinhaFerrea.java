@@ -6,7 +6,15 @@ public class LinhaFerrea {
     private Town origem,
         destino;
 //troquei Destino para destino prq tava das issues
+<<<<<<< HEAD
 public LinhaFerrea(String nome, float custo, Town origem, Town destino){
+=======
+   public LinhaFerrea(String nome, float custo, Town origem, Town destino){
+/* ter Linha Ferrea como privado estava a criar error na classe caminhoMinimo
+entao tornei public, para devolver ao estado anterior e so apagar o em cima e
+tirar de comentario o embaixo*/
+    //LinhaFerrea(String nome, float custo, Town origem, Town destino){
+>>>>>>> 2cd43e84b89abee65baaedb374a64b2d8f1d4c2d
         this.nome=nome;
         this.distanciaKm=custo;
         this.origem= origem;

@@ -7,7 +7,7 @@ public class Town {
     private String name;
     private List<LinhaFerrea> vizinhos;
 
-    Town(String name){
+    public Town(String name){
         this.name=name;
         this.vizinhos= new ArrayList<>();
     }

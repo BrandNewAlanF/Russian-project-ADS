@@ -1,6 +1,6 @@
-class UkranianRailRoads {
-    UkranianRailRoads(){}
+class BackendServer {
+    BackendServer(){}
     public static void main(String[] args){
-        new UkranianRailRoads();
+        new BackendServer();
     }
 }
