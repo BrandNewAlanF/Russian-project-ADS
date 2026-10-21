@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Style - Rede Ferroviária Ucrânia</title>
+    <style>
+        :root {
+            --bg-map: #12161f;
+            --panel-bg: rgba(24, 28, 38, 0.9);
+            --accent: #1a73e8;
+            --accent-glow: rgba(26, 115, 232, 0.4);
+            --railway: #f2994a;
+            --text-main: #ffffff;
+            --text-secondary: #9aa0a6;
+        }
+
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-map);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Painel Lateral (Estilo Google Maps Sidebar) */
+        .sidebar {
+            width: 350px;
+            background-color: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid #2d3748;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            margin-top: 0;
+            color: #8ab4f8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .route-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            border: 1px solid #3c4043;
+        }
+
+        .route-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .btn-action {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-action:hover {
+            background-color: #1b66c9;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* Área do Mapa */
+        .map-viewport {
+            flex-grow: 1;
+            position: relative;
+            background-image:
+                radial-gradient(#2d3748 1px, transparent 1px),
+                radial-gradient(#2d3748 1px, var(--bg-map) 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Linhas Férreas */
+        .rail-line {
+            stroke: var(--railway);
+            stroke-width: 4;
+            stroke-dasharray: 8, 4;
+            cursor: pointer;
+            transition: stroke 0.3s, stroke-width 0.3s;
+        }
+
+        .rail-line:hover {
+            stroke: #ffbb55;
+            stroke-width: 6;
+        }
+
+        /* Marcadores das Cidades */
+        .city-group {
+            cursor: pointer;
+        }
+
+        .city-dot {
+            fill: #8ab4f8;
+            stroke: #ffffff;
+            stroke-width: 2.5px;
+            transition: transform 0.2s;
+        }
+
+        .city-group:hover .city-dot {
+            transform: scale(1.4);
+            fill: #4285f4;
+        }
+
+        .city-text {
+            fill: #e8eaed;
+            font-size: 13px;
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            user-select: none;
+        }
+
+        /* Tooltip flutuante de distância */
+        .map-tooltip {
+            position: absolute;
+            background: #202124;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            display: none;
+            border: 1px solid #5f6368;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+        /* Comboio Animado */
+        #train-marker {
+            fill: #ea4335;
+            filter: drop-shadow(0 0 6px #ea4335);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Painel Lateral -->
+<div class="sidebar">
+    <h2>🚆 Ukrainian Rail Control</h2>
+    <p style="font-size: 13px; color: var(--text-secondary);">Sistema de Monitoramento de Rotas Logísticas e Militares.</p>
+
+    <div class="route-card">
+        <h3>ROTA ATIVA</h3>
+        <p id="route-info" style="margin: 0; font-size: 14px; font-weight: 500;">Selecione ou inicie a simulação</p>
+    </div>
+
+    <div class="route-card">
+        <h3>MÉTRICAS DO GRAFO</h3>
+        <p style="margin: 0 0 5px 0; font-size: 13px;">Nós (Cidades): <b>8 Oblasts</b></p>
+        <p style="margin: 0; font-size: 13px;">Arestas (Linhas): <b>8 Conexões</b></p>
+    </div>
+
+    <button class="btn-action" onclick="iniciarSimulacao()">Iniciar Movimento do Comboio</button>
+</div>
+
+<!-- Visualizador do Mapa -->
+<div class="map-viewport">
+    <div id="tooltip" class="map-tooltip"></div>
+
+    <svg viewBox="0 0 800 500" id="mapSvg">
+        <!-- Linhas Férreas com dados -->
+        <line x1="200" y1="150" x2="380" y2="120" class="rail-line" data-info="Kyiv ➔ Chernihiv | 142 km" />
+        <line x1="200" y1="150" x2="130" y2="250" class="rail-line" data-info="Kyiv ➔ Zhytomyr | 139 km" />
+        <line x1="200" y1="150" x2="320" y2="280" class="rail-line" data-info="Kyiv ➔ Cherkasy | 188 km" />
+        <line x1="380" y1="120" x2="560" y2="150" class="rail-line" data-info="Chernihiv ➔ Sumy | 210 km" />
+        <line x1="320" y1="280" x2="500" y2="300" class="rail-line" data-info="Cherkasy ➔ Dnipro | 250 km" />
+        <line x1="500" y1="300" x2="680" y2="260" class="rail-line" data-info="Dnipro ➔ Kharkiv | 215 km" />
+        <line x1="130" y1="250" x2="260" y2="400" class="rail-line" data-info="Zhytomyr ➔ Vinnytsia | 130 km" />
+        <line x1="260" y1="400" x2="440" y2="430" class="rail-line" data-info="Vinnytsia ➔ Mykolaiv | 280 km" />
+
+        <!-- Cidades (Destaques no estilo Maps) -->
+        <g class="city-group"><circle cx="200" cy="150" r="7" class="city-dot"/><text x="215" y="155" class="city-text">Kyiv (Hub)</text></g>
+        <g class="city-group"><circle cx="380" cy="120" r="6" class="city-dot"/><text x="395" y="125" class="city-text">Chernihiv</text></g>
+        <g class="city-group"><circle cx="130" cy="250" r="6" class="city-dot"/><text x="60" y="255" class="city-text">Zhytomyr</text></g>
+        <g class="city-group"><circle cx="320" cy="280" r="6" class="city-dot"/><text x="335" y="285" class="city-text">Cherkasy</text></g>
+        <g class="city-group"><circle cx="560" cy="150" r="6" class="city-dot"/><text x="575" y="155" class="city-text">Sumy</text></g>
+        <g class="city-group"><circle cx="500" cy="300" r="6" class="city-dot"/><text x="515" y="305" class="city-text">Dnipro</text></g>
+        <g class="city-group"><circle cx="680" cy="260" r="6" class="city-dot"/><text x="695" y="265" class="city-text">Kharkiv</text></g>
+        <g class="city-group"><circle cx="260" cy="400" r="6" class="city-dot"/><text x="275" y="405" class="city-text">Vinnytsia</text></g>
+        <g class="city-group"><circle cx="440" cy="430" r="6" class="city-dot"/><text x="455" y="435" class="city-text">Mykolaiv</text></g>
+
+        <!-- Ícone do Comboio -->
+        <circle id="train-marker" cx="200" cy="150" r="8" />
+    </svg>
+</div>
+
+<script>
+    const tooltip = document.getElementById('tooltip');
+    const railLines = document.querySelectorAll('.rail-line');
+    const train = document.getElementById('train-marker');
+    const routeInfo = document.getElementById('route-info');
+
+    // Tooltip hover nas linhas
+    railLines.forEach(line => {
+        line.addEventListener('mousemove', (e) => {
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.pageX + 15) + 'px';
+            tooltip.style.top = (e.pageY + 15) + 'px';
+            tooltip.textContent = line.getAttribute('data-info');
+        });
+        line.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+        });
+    });
+
+    // Coordenadas da animação do comboio
+    const waypoints = [
+        {x: 200, y: 150, name: "Kyiv"},
+        {x: 380, y: 120, name: "Chernihiv"},
+        {x: 560, y: 150, name: "Sumy"},
+        {x: 680, y: 260, name: "Kharkiv"},
+        {x: 500, y: 300, name: "Dnipro"},
+        {x: 320, y: 280, name: "Cherkasy"},
+        {x: 200, y: 150, name: "Kyiv (Retorno)"}
+    ];
+
+    let index = 0;
+    function iniciarSimulacao() {
+        index = (index + 1) % waypoints.length;
+        let target = waypoints[index];
+
+        train.style.transition = "cx 1.8s ease-in-out, cy 1.8s ease-in-out";
+        train.setAttribute('cx', target.x);
+        train.setAttribute('cy', target.y);
+        routeInfo.textContent = `Comboio em direção a: ${target.name}`;
+    }
+</script>
+</body>
+</html>

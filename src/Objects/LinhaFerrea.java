@@ -2,13 +2,13 @@ package Objects;
 
 public class LinhaFerrea {
     private String nome;
-    private float custo;
+    private float distanciaKm;
     private Town origem,
         destino;
 //troquei Destino para destino prq tava das issues
-    LinhaFerrea(String nome, float custo, Town origem, Town destino){
+public LinhaFerrea(String nome, float custo, Town origem, Town destino){
         this.nome=nome;
-        this.custo=custo;
+        this.distanciaKm=custo;
         this.origem= origem;
         this.destino= destino;
     }
@@ -22,11 +22,11 @@ public class LinhaFerrea {
     }
 
     public float getCusto() {
-        return custo;
+        return distanciaKm;
     }
 
     public void setCusto(float custo) {
-        this.custo = custo;
+        this.distanciaKm = custo;
     }
 
     public Town getOrigem() {
