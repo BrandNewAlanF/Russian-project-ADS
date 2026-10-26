@@ -71,6 +71,15 @@
     const mapLines = new Map();
     let map = null;
     let cy = null;
+    let mapTileErrors = 0;
+    let mapTileErrorNotified = false;
+
+    function setMapStatus(message, stateName) {
+        const status = byId("map-status");
+        status.classList.remove("is-loading", "is-error");
+        if (stateName) status.classList.add(stateName);
+        status.querySelector("span:last-child").textContent = message;
+    }
 
     function byId(id) {
         return document.getElementById(id);
@@ -150,15 +159,31 @@
     function initializeMap() {
         if (!window.L) {
             byId("map-canvas").innerHTML = '<div class="dependency-message"><strong>Biblioteca do mapa indisponível</strong><span>Ligue-se à Internet e volte a carregar a página para carregar o Leaflet e os mapas do OpenStreetMap. Pode continuar a utilizar as vistas de grafo, matriz e lista.</span></div>';
+            setMapStatus("Leaflet indisponível", "is-error");
             return;
         }
 
         map = L.map("map-canvas", { zoomControl: false, preferCanvas: true }).setView([48.8, 32.4], 6);
         L.control.zoom({ position: "bottomright" }).addTo(map);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        const baseMap = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 18,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+        baseMap.on("loading", function () {
+            mapTileErrors = 0;
+            setMapStatus("A carregar mapa…", "is-loading");
+        });
+        baseMap.on("tileerror", function () {
+            mapTileErrors += 1;
+            setMapStatus("Acesso ao mapa indisponível", "is-error");
+            if (!mapTileErrorNotified) {
+                mapTileErrorNotified = true;
+                showToast("Não foi possível carregar o mapa online. Verifique o acesso à Internet e tente novamente.");
+            }
+        });
+        baseMap.on("load", function () {
+            if (mapTileErrors === 0) setMapStatus("Mapa online", "");
+        });
 
         edges.forEach(function (edge) {
             const source = nodeById.get(edge.source);

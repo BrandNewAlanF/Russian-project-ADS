@@ -206,6 +206,20 @@ kbd {
     box-shadow: 0 0 0 3px #e7f7f0;
 }
 
+.data-status.is-loading .status-dot {
+    background: #e3a32f;
+    box-shadow: 0 0 0 3px #fff4dc;
+}
+
+.data-status.is-error {
+    color: #b42318;
+}
+
+.data-status.is-error .status-dot {
+    background: #d92d20;
+    box-shadow: 0 0 0 3px #fee4e2;
+}
+
 .workspace {
     display: grid;
     grid-template-columns: 318px minmax(0, 1fr);

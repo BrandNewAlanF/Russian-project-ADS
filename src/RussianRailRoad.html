@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f7f8fa">
     <title>Gestor da Rede Ferroviária da Ucrânia</title>
-    <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="RussianRailRoads.css">
-    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script defer src="vendor/leaflet/leaflet.js"></script>
     <script defer src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
     <script defer src="RussianRailRoad.js"></script>
 </head>
@@ -37,9 +36,9 @@
                 <input id="global-search" type="search" placeholder="Pesquisar região, linha ou percurso" autocomplete="off">
                 <kbd>/</kbd>
             </label>
-            <div class="data-status" title="A visualização utiliza o conjunto de dados local do grafo">
+            <div class="data-status is-loading" id="map-status" title="Cartografia online; as linhas ferroviárias utilizam os dados locais do projeto" role="status" aria-live="polite">
                 <span class="status-dot" aria-hidden="true"></span>
-                <span>Dados locais</span>
+                <span>A carregar mapa…</span>
             </div>
         </div>
     </header>
