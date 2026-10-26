@@ -167,6 +167,7 @@
         L.control.zoom({ position: "bottomright" }).addTo(map);
         const baseMap = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 18,
+            referrerPolicy: "strict-origin-when-cross-origin",
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         baseMap.on("loading", function () {
