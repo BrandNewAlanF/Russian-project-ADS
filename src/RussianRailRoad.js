@@ -85,7 +85,7 @@
     }
 
     function formatDistance(distance) {
-        return new Intl.NumberFormat("en-US").format(distance) + " km";
+        return new Intl.NumberFormat("pt-PT").format(distance) + " km";
     }
 
     function getDegree(nodeId) {
@@ -149,7 +149,7 @@
 
     function initializeMap() {
         if (!window.L) {
-            byId("map-canvas").innerHTML = '<div class="dependency-message"><strong>Map library unavailable</strong><span>Connect to the internet and reload to load Leaflet and OpenStreetMap tiles. The graph, matrix and list views can still be used.</span></div>';
+            byId("map-canvas").innerHTML = '<div class="dependency-message"><strong>Biblioteca do mapa indisponível</strong><span>Ligue-se à Internet e volte a carregar a página para carregar o Leaflet e os mapas do OpenStreetMap. Pode continuar a utilizar as vistas de grafo, matriz e lista.</span></div>';
             return;
         }
 
@@ -185,13 +185,13 @@
                 fillOpacity: 1
             }).addTo(map);
             marker.bindTooltip(node.name, { direction: "top", offset: [0, -8] });
-            marker.bindPopup("<strong>" + node.name + "</strong><br>" + getDegree(node.id) + " connected railroads");
+            marker.bindPopup("<strong>" + node.name + "</strong><br>" + getDegree(node.id) + " ligações ferroviárias");
             marker.on("click", function (event) {
                 selectNode(node.id, event.originalEvent);
             });
             marker.on("contextmenu", function () {
                 setRouteEndpoint("source-node", node.id);
-                showToast(node.name + " set as route origin");
+                showToast(node.name + " definida como origem do percurso");
             });
             mapMarkers.set(node.id, marker);
         });
@@ -201,7 +201,7 @@
 
     function initializeGraph() {
         if (!window.cytoscape) {
-            byId("graph-canvas").innerHTML = '<div class="dependency-message"><strong>Graph library unavailable</strong><span>Connect to the internet and reload to load Cytoscape.js. Map, matrix and list views remain available.</span></div>';
+            byId("graph-canvas").innerHTML = '<div class="dependency-message"><strong>Biblioteca do grafo indisponível</strong><span>Ligue-se à Internet e volte a carregar a página para carregar o Cytoscape.js. As vistas de mapa, matriz e lista continuam disponíveis.</span></div>';
             return;
         }
 
@@ -483,7 +483,7 @@
         const container = byId("matrix-container");
         const headerCells = nodes.map(function (node) {
             return '<th scope="col"><button class="matrix-node-button" type="button" data-node-id="' +
-                node.id + '" title="Focus ' + node.name + '">' + node.name + "</button></th>";
+                node.id + '" title="Destacar ' + node.name + '">' + node.name + "</button></th>";
         }).join("");
         const rows = nodes.map(function (rowNode) {
             const cells = nodes.map(function (columnNode) {
@@ -494,42 +494,42 @@
                 const value = rowNode.id === columnNode.id || !edge ? "0" :
                     state.matrixMode === "weighted" ? edge.distance : "1";
                 const title = edge ? rowNode.name + " – " + columnNode.name + ": " + formatDistance(edge.distance) :
-                    rowNode.id === columnNode.id ? "Same station" : edge ? "Direct railroad" : "No direct railroad";
+                    rowNode.id === columnNode.id ? "Mesma estação" : edge ? "Ligação ferroviária direta" : "Sem ligação ferroviária direta";
                 return '<td title="' + title + '" class="' + (edge ? "has-connection" : "") + '">' + value + "</td>";
             }).join("");
             return '<tr><th scope="row"><button class="matrix-node-button row-node-button" type="button" data-node-id="' +
                 rowNode.id + '">' + rowNode.name + "</button></th>" + cells + "</tr>";
         }).join("");
-        container.innerHTML = '<table class="matrix-table"><thead><tr><th scope="col">Station</th>' +
+        container.innerHTML = '<table class="matrix-table"><thead><tr><th scope="col">Estação</th>' +
             headerCells + "</tr></thead><tbody>" + rows + "</tbody></table>";
         byId("adjacency-mode").classList.toggle("is-active", state.matrixMode === "adjacency");
         byId("weighted-mode").classList.toggle("is-active", state.matrixMode === "weighted");
         byId("adjacency-mode").setAttribute("aria-pressed", String(state.matrixMode === "adjacency"));
         byId("weighted-mode").setAttribute("aria-pressed", String(state.matrixMode === "weighted"));
         byId("matrix-panel").querySelector("h2").textContent =
-            state.matrixMode === "weighted" ? "Weighted matrix" : "Adjacency matrix";
+            state.matrixMode === "weighted" ? "Matriz ponderada" : "Matriz de adjacência";
     }
 
     function renderList(visible) {
         byId("station-list").innerHTML = visible.nodes.map(function (node) {
             return '<button class="station-card ' + (state.selectedNodes.has(node.id) ? "is-selected" : "") +
                 '" type="button" data-node-id="' + node.id + '"><span class="station-card-dot"></span>' +
-                "<span><strong>" + node.name + "</strong><small>" + getDegree(node.id) + " connections</small></span>" +
+                "<span><strong>" + node.name + "</strong><small>" + getDegree(node.id) + " ligações</small></span>" +
                 '<span class="station-card-arrow">→</span></button>';
-        }).join("") || '<p class="empty-state">No stations match the current filters.</p>';
+        }).join("") || '<p class="empty-state">Nenhuma estação corresponde aos filtros atuais.</p>';
 
         byId("railroad-list").innerHTML = visible.edges.map(function (edge) {
             const source = nodeById.get(edge.source);
             const target = nodeById.get(edge.target);
             return '<tr data-edge-id="' + edge.id + '" class="' + (state.selectedEdges.has(edge.id) ? "is-selected" : "") +
-                '"><td><span class="table-line-icon"></span>Railroad ' + String(edges.indexOf(edge) + 1).padStart(2, "0") +
+                '"><td><span class="table-line-icon"></span>Linha ferroviária ' + String(edges.indexOf(edge) + 1).padStart(2, "0") +
                 "</td><td>" + source.name + "</td><td>" + target.name + "</td><td>" +
                 formatDistance(edge.distance) + "</td></tr>";
-        }).join("") || '<tr><td colspan="4" class="empty-state">No railroads match the current filters.</td></tr>';
+        }).join("") || '<tr><td colspan="4" class="empty-state">Nenhuma linha ferroviária corresponde aos filtros atuais.</td></tr>';
 
         byId("station-count").textContent = "(" + visible.nodes.length + ")";
         byId("railroad-count").textContent = "(" + visible.edges.length + ")";
-        byId("list-count").textContent = visible.nodes.length + " stations · " + visible.edges.length + " railroads";
+        byId("list-count").textContent = visible.nodes.length + " estações · " + visible.edges.length + " linhas";
     }
 
     function renderSelectionSummary() {
@@ -538,12 +538,12 @@
         });
         const selectedEdgeCount = state.selectedEdges.size;
         if (!selectedNodeNames.length && !selectedEdgeCount) {
-            byId("selection-summary").textContent = "No stations or railroads selected";
+            byId("selection-summary").textContent = "Não foram selecionadas estações nem linhas";
             return;
         }
         const parts = [];
         if (selectedNodeNames.length) parts.push(selectedNodeNames.join(", "));
-        if (selectedEdgeCount) parts.push(selectedEdgeCount + " railroad" + (selectedEdgeCount === 1 ? "" : "s"));
+        if (selectedEdgeCount) parts.push(selectedEdgeCount + " " + (selectedEdgeCount === 1 ? "linha" : "linhas"));
         byId("selection-summary").textContent = parts.join(" · ");
     }
 
@@ -551,9 +551,9 @@
         const filtered = state.query || state.focusNode || state.connectionFilter !== "all" ||
             state.minDistance !== "" || state.maxDistance !== "";
         byId("filter-summary").textContent = filtered ?
-            "Showing " + visible.nodes.length + " of " + nodes.length + " stations · " +
-                visible.edges.length + " of " + edges.length + " railroads" :
-            "Showing all " + nodes.length + " stations and " + edges.length + " railroads";
+            "A mostrar " + visible.nodes.length + " de " + nodes.length + " estações · " +
+                visible.edges.length + " de " + edges.length + " linhas" :
+            "A mostrar todas as " + nodes.length + " estações e as " + edges.length + " linhas";
     }
 
     function setMatrixMode(mode) {
@@ -637,7 +637,7 @@
             selectEdge(railroad.id, null);
             setView("map");
         } else {
-            showToast("No station or railroad matches that search.");
+            showToast("Nenhuma estação ou linha corresponde a essa pesquisa.");
         }
     }
 
@@ -698,16 +698,16 @@
         if (startId === endId) {
             state.routeNodeIds.clear();
             state.routeEdgeIds.clear();
-            byId("route-result").textContent = "Choose two different stations for a route.";
+            byId("route-result").textContent = "Escolha duas estações diferentes para o percurso.";
             renderAll();
-            showToast("Choose two different stations for a route.");
+            showToast("Escolha duas estações diferentes para o percurso.");
             return;
         }
         const result = shortestPath(startId, endId);
         if (!result) {
             state.routeNodeIds.clear();
             state.routeEdgeIds.clear();
-            byId("route-result").textContent = "No route exists between these stations.";
+            byId("route-result").textContent = "Não existe um percurso entre estas estações.";
             renderAll();
             return;
         }
@@ -724,7 +724,7 @@
         path.textContent = routeNames.join("  →  ");
         summary.append(distance, path);
         byId("route-result").replaceChildren(summary);
-        byId("algorithm-result").textContent = "Shortest route: " + routeNames.join(" → ") +
+        byId("algorithm-result").textContent = "Percurso mais curto: " + routeNames.join(" → ") +
             " (" + formatDistance(result.distance) + ").";
         renderAll();
         if (map) {
@@ -750,7 +750,7 @@
                 }
             });
         }
-        return { order: order, pathEdges: [], message: "BFS visited " + order.length + " stations from " + nodeById.get(startId).name + "." };
+        return { order: order, pathEdges: [], message: "A pesquisa em largura (BFS) visitou " + order.length + " estações a partir de " + nodeById.get(startId).name + "." };
     }
 
     function depthFirstSearch(startId) {
@@ -764,7 +764,7 @@
             });
         }
         visit(startId);
-        return { order: order, pathEdges: [], message: "DFS visited " + order.length + " stations from " + nodeById.get(startId).name + "." };
+        return { order: order, pathEdges: [], message: "A pesquisa em profundidade (DFS) visitou " + order.length + " estações a partir de " + nodeById.get(startId).name + "." };
     }
 
     function prim(startId) {
@@ -790,7 +790,7 @@
         return {
             order: order,
             pathEdges: selectedEdges,
-            message: "Prim selected " + selectedEdges.length + " railroads · " + formatDistance(total) + " total."
+            message: "Prim selecionou " + selectedEdges.length + " linhas · distância total: " + formatDistance(total) + "."
         };
     }
 
@@ -822,7 +822,7 @@
         return {
             order: order,
             pathEdges: selectedEdges,
-            message: "Kruskal selected " + selectedEdges.length + " railroads · " + formatDistance(total) + " total."
+            message: "Kruskal selecionou " + selectedEdges.length + " linhas · distância total: " + formatDistance(total) + "."
         };
     }
 
@@ -837,19 +837,19 @@
         if (algorithm === "dijkstra") {
             const endId = byId("destination-node").value;
             if (startId === endId) {
-                showToast("Choose a destination different from the start station.");
+                showToast("Escolha um destino diferente da estação inicial.");
                 return;
             }
             const route = shortestPath(startId, endId);
             if (!route) {
-                showToast("No route exists between these stations.");
+                showToast("Não existe um percurso entre estas estações.");
                 return;
             }
             result = {
                 order: route.visitedOrder,
                 pathNodes: route.pathNodes,
                 pathEdges: route.pathEdges,
-                message: "Dijkstra found a " + formatDistance(route.distance) + " route: " +
+                message: "O algoritmo de Dijkstra encontrou um percurso de " + formatDistance(route.distance) + ": " +
                     route.pathNodes.map(function (id) { return nodeById.get(id).name; }).join(" → ") + "."
             };
         }
@@ -862,7 +862,7 @@
         state.routeEdgeIds.clear();
         state.visual = { visited: new Set(), current: null, pathNodes: new Set(), pathEdges: new Set() };
         let index = 0;
-        byId("algorithm-result").textContent = "Running visualization…";
+        byId("algorithm-result").textContent = "A executar a visualização…";
         renderAll();
 
         function step() {
@@ -919,7 +919,7 @@
         byId("stat-edges").textContent = String(edges.length);
         byId("stat-components").textContent = String(components);
         byId("stat-distance").textContent = formatDistance(totalDistance);
-        byId("map-count-label").textContent = nodes.length + " stations · " + edges.length + " railroads";
+        byId("map-count-label").textContent = nodes.length + " estações · " + edges.length + " linhas";
     }
 
     function fitMap() {
