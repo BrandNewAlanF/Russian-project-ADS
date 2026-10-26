@@ -1,325 +1,221 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>
-        Ukrainian Railroad Manager
-    </title>
-    <link
-            rel="stylesheet"
-            href="https://unpkg.com/leaflet/dist/leaflet.css"
-    />
-
-    <script
-            src="https://unpkg.com/leaflet/dist/leaflet.js">
-    </script>
-    <link
-            rel="stylesheet" href="RussianRailRoads.css"
-    />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f8fa">
+    <title>Ukrainian Railroad Manager</title>
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://tile.openstreetmap.org">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="RussianRailRoads.css">
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script defer src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
+    <script defer src="RussianRailRoad.js"></script>
 </head>
-
 <body>
-
-<!-- MAIN GRAPH AREA -->
-
-<div id="graph-container">
-
-    <!--
-        Graph library renders here.
-    -->
-
-    <div id="network">
-    </div>
-
-</div>
-
-
-<!-- TOP TOOLBAR -->
-
-<div id="toolbar">
-
-    <button data-view="map">
-
-        Map
-
-    </button>
-
-    <button data-view="matrix">
-
-        Matrix
-
-    </button>
-
-    <button data-view="list">
-
-        List
-
-    </button>
-
-</div>
-
-
-<!-- SERVER STATUS -->
-
-<div id="status-panel">
-
-    <div>
-
-        Server:
-        <span id="server-status">
-
-                Connecting...
-
+<div class="app-shell">
+    <header class="topbar">
+        <a class="brand" href="#" aria-label="Ukrainian Railroad Manager home">
+            <span class="brand-mark" aria-hidden="true">UR</span>
+            <span class="brand-copy">
+                <strong>Railroad Manager</strong>
+                <small>Ukraine network analysis</small>
             </span>
+        </a>
 
-    </div>
+        <div class="view-switcher" id="view-switcher" role="tablist" aria-label="Visualization">
+            <button class="view-tab is-active" type="button" role="tab" aria-selected="true" data-view="map">Map</button>
+            <button class="view-tab" type="button" role="tab" aria-selected="false" data-view="graph">Graph</button>
+            <button class="view-tab" type="button" role="tab" aria-selected="false" data-view="matrix">Matrix</button>
+            <button class="view-tab" type="button" role="tab" aria-selected="false" data-view="list">List</button>
+        </div>
 
+        <div class="topbar-actions">
+            <label class="search-box" for="global-search">
+                <span aria-hidden="true">⌕</span>
+                <input id="global-search" type="search" placeholder="Search oblast, railroad or route" autocomplete="off">
+                <kbd>/</kbd>
+            </label>
+            <div class="data-status" title="Visualization runs from the local graph dataset">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span>Local dataset</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="workspace">
+        <aside class="sidebar" aria-label="Network controls">
+            <section class="sidebar-section search-results-section">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">NETWORK EXPLORER</p>
+                        <h1>Explore the network</h1>
+                    </div>
+                    <button class="icon-button mobile-close" id="sidebar-close" type="button" aria-label="Close controls">×</button>
+                </div>
+                <p class="muted-copy">Select stations, inspect links and plan a route across Ukraine.</p>
+            </section>
+
+            <section class="sidebar-section filter-section" aria-labelledby="filters-title">
+                <div class="section-title-row">
+                    <h2 id="filters-title">Filters</h2>
+                    <button class="text-button" id="clear-filters" type="button">Clear</button>
+                </div>
+                <label class="field-label" for="focus-node">Focus oblast / station</label>
+                <select class="field-control" id="focus-node">
+                    <option value="">All stations</option>
+                </select>
+                <div class="field-row">
+                    <label class="field-group">
+                        <span class="field-label">Min distance</span>
+                        <span class="input-with-unit">
+                            <input class="field-control" id="min-distance" type="number" min="0" placeholder="0">
+                            <span>km</span>
+                        </span>
+                    </label>
+                    <label class="field-group">
+                        <span class="field-label">Max distance</span>
+                        <span class="input-with-unit">
+                            <input class="field-control" id="max-distance" type="number" min="0" placeholder="Any">
+                            <span>km</span>
+                        </span>
+                    </label>
+                </div>
+                <label class="field-label" for="connection-filter">Connections</label>
+                <select class="field-control" id="connection-filter">
+                    <option value="all">All stations</option>
+                    <option value="connected">Connected stations only</option>
+                    <option value="isolated">Isolated stations only</option>
+                </select>
+                <p class="filter-summary" id="filter-summary">Showing all stations and railroads</p>
+            </section>
+
+            <section class="sidebar-section route-section" aria-labelledby="route-title">
+                <div class="section-title-row">
+                    <h2 id="route-title">Route planner</h2>
+                    <span class="section-icon" aria-hidden="true">↗</span>
+                </div>
+                <label class="field-label" for="source-node">Origin</label>
+                <select class="field-control" id="source-node"></select>
+                <label class="field-label" for="destination-node">Destination</label>
+                <select class="field-control" id="destination-node"></select>
+                <button class="primary-button" id="run-route-btn" type="button">Find shortest route <span aria-hidden="true">→</span></button>
+                <div class="route-result" id="route-result" aria-live="polite">
+                    <span class="result-placeholder">Choose two stations to calculate a route.</span>
+                </div>
+            </section>
+
+            <section class="sidebar-section algorithm-section" aria-labelledby="algorithm-title">
+                <div class="section-title-row">
+                    <h2 id="algorithm-title">Algorithm lab</h2>
+                    <span class="section-icon" aria-hidden="true">⌘</span>
+                </div>
+                <label class="field-label" for="algorithm-select">Algorithm</label>
+                <select class="field-control" id="algorithm-select">
+                    <option value="bfs">Breadth-first search (BFS)</option>
+                    <option value="dfs">Depth-first search (DFS)</option>
+                    <option value="dijkstra">Dijkstra shortest path</option>
+                    <option value="prim">Prim minimum spanning tree</option>
+                    <option value="kruskal">Kruskal minimum spanning tree</option>
+                </select>
+                <label class="field-label" for="algorithm-start">Start station</label>
+                <select class="field-control" id="algorithm-start"></select>
+                <button class="secondary-button" id="run-algorithm-btn" type="button">Run visualization</button>
+                <div class="algorithm-result" id="algorithm-result" aria-live="polite">Ready to run an algorithm.</div>
+            </section>
+
+            <section class="sidebar-section selection-section" aria-labelledby="selection-title">
+                <div class="section-title-row">
+                    <h2 id="selection-title">Selection</h2>
+                    <button class="text-button" id="clear-selection" type="button">Clear</button>
+                </div>
+                <p class="selection-summary" id="selection-summary">No stations or railroads selected</p>
+                <p class="selection-hint">Tip: Ctrl-click / ⌘-click to select multiple items.</p>
+            </section>
+
+            <section class="sidebar-section legend-section">
+                <p class="eyebrow">MAP LEGEND</p>
+                <div class="legend-row"><span class="legend-dot station-dot"></span><span>Rail station</span></div>
+                <div class="legend-row"><span class="legend-line"></span><span>Railroad · distance in km</span></div>
+                <div class="legend-row"><span class="legend-line route-line"></span><span>Selected route / result</span></div>
+                <p class="data-note">Map markers represent graph stations; administrative boundary polygons are not included in the supplied dataset.</p>
+            </section>
+        </aside>
+
+        <section class="visualization" aria-label="Railroad network visualization">
+            <div class="view-panel map-panel is-visible" id="map-panel" role="tabpanel" aria-label="Map view">
+                <div id="map-canvas" class="map-canvas" aria-label="Interactive railroad network map"></div>
+                <div class="map-floating-card map-title-card">
+                    <span class="eyebrow">UKRAINE · RAIL NETWORK</span>
+                    <strong>Network map</strong>
+                    <span id="map-count-label">16 stations · 26 railroads</span>
+                </div>
+                <div class="map-controls">
+                    <button class="map-control-button" id="fit-map" type="button" aria-label="Fit network to map" title="Fit network">⌗</button>
+                    <button class="map-control-button" id="open-sidebar" type="button" aria-label="Open network controls" title="Open controls">☰</button>
+                </div>
+            </div>
+
+            <div class="view-panel graph-panel" id="graph-panel" role="tabpanel" aria-label="Graph view" hidden>
+                <div id="graph-canvas" class="graph-canvas" aria-label="Interactive railroad graph"></div>
+                <div class="graph-toolbar">
+                    <span>Drag stations to rearrange · Ctrl-click to multi-select</span>
+                    <button class="secondary-button compact-button" id="fit-graph" type="button">Fit graph</button>
+                </div>
+            </div>
+
+            <div class="view-panel data-panel" id="matrix-panel" role="tabpanel" aria-label="Matrix view" hidden>
+                <div class="data-panel-header">
+                    <div>
+                        <p class="eyebrow">GRAPH DATA</p>
+                        <h2>Adjacency matrix</h2>
+                    </div>
+                    <div class="segmented-control" role="group" aria-label="Matrix type">
+                        <button class="is-active" id="adjacency-mode" type="button" aria-pressed="true">Adjacency</button>
+                        <button id="weighted-mode" type="button" aria-pressed="false">Weighted</button>
+                    </div>
+                </div>
+                <p class="muted-copy">Select a station header to focus it across the network. A value of 0 means there is no direct railroad.</p>
+                <div class="table-wrap matrix-wrap" id="matrix-container"></div>
+            </div>
+
+            <div class="view-panel data-panel list-panel" id="list-panel" role="tabpanel" aria-label="List view" hidden>
+                <div class="data-panel-header">
+                    <div>
+                        <p class="eyebrow">GRAPH DATA</p>
+                        <h2>Stations &amp; railroads</h2>
+                    </div>
+                    <span class="result-count" id="list-count"></span>
+                </div>
+                <div class="list-content">
+                    <section>
+                        <h3>Stations <span id="station-count"></span></h3>
+                        <div class="station-list" id="station-list"></div>
+                    </section>
+                    <section>
+                        <h3>Railroads <span id="railroad-count"></span></h3>
+                        <div class="table-wrap">
+                            <table class="data-table">
+                                <thead><tr><th>Railroad</th><th>From</th><th>To</th><th>Distance</th></tr></thead>
+                                <tbody id="railroad-list"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <section class="stats-bar" aria-label="Network statistics">
+                <div class="stat-item"><span class="stat-icon">◎</span><span><strong id="stat-nodes">16</strong><small>Stations</small></span></div>
+                <div class="stat-item"><span class="stat-icon">⤳</span><span><strong id="stat-edges">26</strong><small>Railroads</small></span></div>
+                <div class="stat-item"><span class="stat-icon">◉</span><span><strong id="stat-components">1</strong><small>Components</small></span></div>
+                <div class="stat-item"><span class="stat-icon">↔</span><span><strong id="stat-distance">—</strong><small>Total distance</small></span></div>
+                <span class="stats-caption">Based on supplied weighted adjacency matrix</span>
+            </section>
+        </section>
+    </main>
 </div>
 
-
-<!-- FLOATING ACTION BUTTON -->
-
-<div id="fab-container">
-
-    <div id="fab-menu">
-
-        <button id="new-oblast-btn">
-
-            Add Oblast
-
-        </button>
-
-        <button id="new-railroad-btn">
-
-            Add Railroad
-
-        </button>
-
-        <button id="algorithms-btn">
-
-            Algorithms
-
-        </button>
-
-        <button id="visualizations-btn">
-
-            Visualizations
-
-        </button>
-
-    </div>
-
-    <button id="fab">
-
-        +
-
-    </button>
-
-</div>
-
-
-<!-- ALGORITHM MENU -->
-
-<div id="algorithm-panel">
-
-    <h3>
-
-        Algorithms
-
-    </h3>
-
-    <button data-algorithm="bfs">
-
-        Breadth First Search
-
-    </button>
-
-    <button data-algorithm="dfs">
-
-        Depth First Search
-
-    </button>
-
-    <button data-algorithm="dijkstra">
-
-        Dijkstra
-
-    </button>
-
-    <button data-algorithm="prim">
-
-        Prim
-
-    </button>
-
-    <button data-algorithm="kruskal">
-
-        Kruskal
-
-    </button>
-
-</div>
-
-
-<!-- ROUTE PANEL -->
-
-<div id="route-panel">
-
-    <h3>
-
-        Route Configuration
-
-    </h3>
-
-    <label>
-
-        Origin
-
-    </label>
-
-    <select id="source-node">
-
-    </select>
-
-    <label>
-
-        Destination
-
-    </label>
-
-    <select id="destination-node">
-
-    </select>
-
-    <button id="run-route-btn">
-
-        Run
-
-    </button>
-
-</div>
-
-
-<!-- NEW OBLAST -->
-
-<div class="modal"
-     id="oblast-modal">
-
-    <div class="modal-content">
-
-        <h3>
-
-            Add Oblast
-
-        </h3>
-
-        <input
-                id="oblast-name"
-                placeholder="Oblast name">
-
-        <button
-                id="save-oblast">
-
-            Save
-
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- NEW RAILROAD -->
-
-<div class="modal"
-     id="railroad-modal">
-
-    <div class="modal-content">
-
-        <h3>
-
-            Add Railroad
-
-        </h3>
-
-        <select id="railroad-from">
-
-        </select>
-
-        <select id="railroad-to">
-
-        </select>
-
-        <input
-                id="railroad-distance"
-                type="number"
-                placeholder="Distance (km)">
-
-        <button
-                id="save-railroad">
-
-            Save
-
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- RIGHT CLICK MENU -->
-
-<div id="context-menu">
-
-    <button id="rename-node">
-
-        Rename
-
-    </button>
-
-    <button id="edit-distance">
-
-        Edit Distance
-
-    </button>
-
-    <button id="delete-item">
-
-        Delete
-
-    </button>
-
-    <button id="set-origin">
-
-        Set Origin
-
-    </button>
-
-    <button id="set-destination">
-
-        Set Destination
-
-    </button>
-
-</div>
-
-
-<!-- NOTIFICATION AREA -->
-
-<div id="toast-container">
-
-</div>
-
-
-RussianRailRoad.jsscript>
-
+<div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
 </body>
-
 </html>
