@@ -1,6 +1,7 @@
 package Algoritmos;
 
 //nao sei se entendi mal mas se for necessario alrerar fiquem a vontade, tenho meus backups
+import Busisnes_Logic.RedeFerroviaria;
 import Objects.Grafo;
 import Objects.LinhaFerrea;
 import Objects.Town;
@@ -8,8 +9,38 @@ import java.util.*;
 
 public class Optimizacao {
 
+    public static void prim(String inicio) {
+        prim(RedeFerroviaria.carregarGrafo(), inicio);
+    }
+
+    public static void prim(String caminhoArquivo, String inicio) {
+        prim(RedeFerroviaria.carregarGrafo(caminhoArquivo), inicio);
+    }
+
+    private static void prim(Grafo grafo, String nomeInicio) {
+        if (grafo == null) {
+            return;
+        }
+        Town inicio = null;
+        for (Town cidade : grafo.getVertices()) {
+            if (cidade.getName().equalsIgnoreCase(nomeInicio)) {
+                inicio = cidade;
+                break;
+            }
+        }
+        if (inicio == null) {
+            System.err.println("Erro ao executar Prim: a cidade inicial não existe na matriz: " + nomeInicio);
+            return;
+        }
+        prim(grafo, inicio);
+    }
+
     // Algoritmo de Prim
     public static void prim(Grafo grafo, Town inicio) {
+        if (grafo == null || inicio == null || !grafo.getListaAdjacencia().containsKey(inicio)) {
+            System.err.println("Erro ao executar Prim: grafo ou cidade inicial inválidos.");
+            return;
+        }
         System.out.println("\n--- Prim (MST) a partir de " + inicio.getName() + " ---");
         Set<Town> naMST = new HashSet<>();
         PriorityQueue<LinhaFerrea> pq = new PriorityQueue<>(Comparator.comparingDouble(LinhaFerrea::getCusto));
@@ -31,6 +62,10 @@ public class Optimizacao {
                     pq.add(prox);
                 }
             }
+        }
+        if (naMST.size() != grafo.getVertices().size()) {
+            System.out.println("Grafo desconexo: a árvore geradora mínima cobre apenas "
+                    + naMST.size() + " de " + grafo.getVertices().size() + " cidades.");
         }
         System.out.println("Custo Total da MST (Prim): " + custoTotal);
     }

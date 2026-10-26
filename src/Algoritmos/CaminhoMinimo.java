@@ -1,5 +1,6 @@
 package Algoritmos;
 
+import Busisnes_Logic.RedeFerroviaria;
 import Objects.Grafo;
 import Objects.LinhaFerrea;
 import Objects.Town;
@@ -7,6 +8,37 @@ import Objects.Town;
 import java.util.*;
 
 public class CaminhoMinimo {
+
+    public static void dijkstra(String origem, String destino) {
+        dijkstra(RedeFerroviaria.carregarGrafo(), origem, destino);
+    }
+
+    public static void dijkstra(String caminhoArquivo, String origem, String destino) {
+        dijkstra(RedeFerroviaria.carregarGrafo(caminhoArquivo), origem, destino);
+    }
+
+    private static void dijkstra(Grafo grafo, String nomeOrigem, String nomeDestino) {
+        if (grafo == null) {
+            return;
+        }
+
+        Town origem = buscarCidade(grafo, nomeOrigem);
+        Town destino = buscarCidade(grafo, nomeDestino);
+        if (origem == null || destino == null) {
+            System.err.println("Erro ao executar Dijkstra: a cidade de origem ou destino não existe na matriz.");
+            return;
+        }
+        dijkstra(grafo, origem, destino);
+    }
+
+    private static Town buscarCidade(Grafo grafo, String nome) {
+        for (Town cidade : grafo.getVertices()) {
+            if (cidade.getName().equalsIgnoreCase(nome)) {
+                return cidade;
+            }
+        }
+        return null;
+    }
 
     // Algoritmo de Dijkstra
     public static void dijkstra(Grafo grafo, Town origem, Town destino) {
@@ -50,5 +82,4 @@ public class CaminhoMinimo {
         System.out.println("Caminho: " + String.join(" -> ", caminho));
     }
 }
-
 

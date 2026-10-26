@@ -3,22 +3,14 @@ package Objects;
 public class LinhaFerrea {
     private String nome;
     private float distanciaKm;
-    private Town origem,
-        destino;
-//troquei Destino para destino prq tava das issues
-<<<<<<< HEAD
-public LinhaFerrea(String nome, float custo, Town origem, Town destino){
-=======
-   public LinhaFerrea(String nome, float custo, Town origem, Town destino){
-/* ter Linha Ferrea como privado estava a criar error na classe caminhoMinimo
-entao tornei public, para devolver ao estado anterior e so apagar o em cima e
-tirar de comentario o embaixo*/
-    //LinhaFerrea(String nome, float custo, Town origem, Town destino){
->>>>>>> 2cd43e84b89abee65baaedb374a64b2d8f1d4c2d
-        this.nome=nome;
-        this.distanciaKm=custo;
-        this.origem= origem;
-        this.destino= destino;
+    private Town origem;
+    private Town destino;
+
+    public LinhaFerrea(String nome, float custo, Town origem, Town destino) {
+        this.nome = nome;
+        this.distanciaKm = custo;
+        this.origem = origem;
+        this.destino = destino;
     }
 
     public String getNome() {
@@ -51,5 +43,11 @@ tirar de comentario o embaixo*/
 
     public void setDestino(Town destino) {
         this.destino = destino;
+    }
+
+    @Override
+    public String toString() {
+        return nome + ": " + origem.getName() + " -> " + destino.getName()
+                + " (" + distanciaKm + " km)";
     }
 }

@@ -1,12 +1,28 @@
 package Algoritmos;
 
 // se necessario podem alterar
+import Busisnes_Logic.RedeFerroviaria;
 import Objects.Grafo;
 import Objects.LinhaFerrea;
 import Objects.Town;
 import java.util.*;
 
 public class Pesquisa {
+
+    public static void dfs(String inicio) {
+        dfs(RedeFerroviaria.carregarGrafo(), inicio);
+    }
+
+    public static void dfs(String caminhoArquivo, String inicio) {
+        dfs(RedeFerroviaria.carregarGrafo(caminhoArquivo), inicio);
+    }
+
+    private static void dfs(Grafo grafo, String nomeInicio) {
+        Town inicio = validarInicio(grafo, nomeInicio, "DFS");
+        if (inicio != null) {
+            dfs(grafo, inicio);
+        }
+    }
 
     // DFS - Busca em Profundidade
     public static void dfs(Grafo grafo, Town inicio) {
@@ -23,6 +39,21 @@ public class Pesquisa {
             if (!visitados.contains(lf.getDestino())) {
                 dfsRecursivo(grafo, lf.getDestino(), visitados);
             }
+        }
+    }
+
+    public static void bfs(String inicio) {
+        bfs(RedeFerroviaria.carregarGrafo(), inicio);
+    }
+
+    public static void bfs(String caminhoArquivo, String inicio) {
+        bfs(RedeFerroviaria.carregarGrafo(caminhoArquivo), inicio);
+    }
+
+    private static void bfs(Grafo grafo, String nomeInicio) {
+        Town inicio = validarInicio(grafo, nomeInicio, "BFS");
+        if (inicio != null) {
+            bfs(grafo, inicio);
         }
     }
 
@@ -47,5 +78,18 @@ public class Pesquisa {
             }
         }
         System.out.println();
+    }
+
+    private static Town validarInicio(Grafo grafo, String nomeInicio, String algoritmo) {
+        if (grafo == null) {
+            return null;
+        }
+        for (Town cidade : grafo.getVertices()) {
+            if (cidade.getName().equalsIgnoreCase(nomeInicio)) {
+                return cidade;
+            }
+        }
+        System.err.println("Erro ao executar " + algoritmo + ": a cidade inicial não existe na matriz: " + nomeInicio);
+        return null;
     }
 }
